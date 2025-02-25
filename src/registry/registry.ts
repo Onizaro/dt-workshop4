@@ -47,25 +47,16 @@ export async function launchRegistry() {
   });
   
   _registry.get("/getNodeRegistry", (req, res) => {
-    res.json({ nodes: registeredNodes });
-  });
-
-  _registry.get("/getPrivateKey", (req, res) =>{
-    const {nodeId} = req.body; 
-
-    if (isNaN(nodeId)) {
-      return res.status(400).json({ error: "Invalid nodeId" });
-    }
-    const node = registeredNodes.find((n) => n.nodeId === nodeId);
-
-    if (!node) {
-      return res.status(404).json({ error: "Node not found" });
-    }
-
-    return res.json({ result: node.prvKey });
+    const formattedNodes = registeredNodes.map(({ nodeId, pubKey }) => ({
+      nodeId,
+      pubKey,
+    }));
+  
+    res.json({ nodes: formattedNodes });
   });
   
 
+  
   const server = _registry.listen(REGISTRY_PORT, () => {
     console.log(`Registry is listening on port ${REGISTRY_PORT}`);
   });
