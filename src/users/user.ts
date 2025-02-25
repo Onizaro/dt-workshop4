@@ -22,11 +22,21 @@ export async function user(userId: number) {
   
 
   _user.get("/getLastReceivedMessage", (req, res) => {
-    res.json({ result: lastReceivedMessage });
+    res.send({ result: lastReceivedMessage });
   });
 
   _user.get("/getLastSentMessage", (req, res) => {
     res.json({ result: lastSentMessage });
+  });
+
+  _user.post("/message", (req, res) => {
+    const { message } = req.body;
+  
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+    lastReceivedMessage = message;
+    return res.send("success");
   });
 
 
