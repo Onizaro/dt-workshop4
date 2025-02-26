@@ -2,7 +2,7 @@ import bodyParser from "body-parser";
 import express from "express";
 import { BASE_USER_PORT, REGISTRY_PORT } from "../config";
 import crypto from "crypto";
-import { createRandomSymmetricKey, symEncrypt, rsaEncrypt, rsaDecrypt, importSymKey, symDecrypt} from "../crypto";
+import { createRandomSymmetricKey, symEncrypt, rsaEncrypt, rsaDecrypt, importSymKey, symDecrypt, importPrvKey} from "../crypto";
 
 
 export type SendMessageBody = {
@@ -50,11 +50,13 @@ export async function user(userId: number) {
   async function getPrivateKey(port: number): Promise<string> {
     const response = await fetch(`http://localhost:${port}/getPrivateKey`);
     if (!response.ok) {
-      throw new Error("Failed to retrieve private key");
+        throw new Error("Failed to retrieve private key");
     }
-    const data = await response.json();
+
+    const data = await response.json() as { result: string }; // Force l'assertion de type
     return data.result;
-  }
+}
+
 
   _user.post("/message", async (req, res) => {
     const { message } = req.body;
@@ -71,8 +73,8 @@ export async function user(userId: number) {
             throw new Error("Failed to retrieve private key");
         }
 
-        const data = await response.json();
-        const privateKeyBase64 = data.result;
+        const data = await response.json() as {result: string};
+        const privateKeyBase64 = data.result ;
         const privateKey = await importPrvKey(privateKeyBase64);
 
         // Décryptage de la première couche
@@ -86,7 +88,7 @@ export async function user(userId: number) {
 
         console.log("Decrypted payload:", decryptedPayload);
 
-        return res.json({ decryptedPayload });
+        return res.send("success");
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "Failed to process message" });
